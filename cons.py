@@ -1,0 +1,11 @@
+cel_size=30
+scr_wid=1000
+scr_hi=850
+grid_rows= scr_hi//cel_size
+grid_cols= scr_wid//cel_size
+row_margin=(scr_wid-(cel_size*grid_cols))/2
+col_margin=(scr_hi-(cel_size*grid_rows))/2
+maze_grid_rows=grid_rows-2
+maze_grid_cols= grid_cols
+maze_lvl_start_x=(-scr_wid/2)+ row_margin + cel_size/2
+maze_lvl_start_y=(scr_wid/2)+ col_margin - (cel_size*5/2)
