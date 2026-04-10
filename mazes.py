@@ -1,7 +1,7 @@
 """
 X= wall
 .=pellet
-0=power up
+O=power up
 """
 from cons import (cel_size, maze_grid_cols,maze_grid_rows,maze_lvl_start_x,maze_lvl_start_y)
 maze_level_1 = [
@@ -32,3 +32,21 @@ maze_level_1 = [
     "XO..............................X",
     "XXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXX"
 ]
+def calc_maze(maze_lvl):
+    walls=[]
+    pellets=[]
+    powerups=[]
+
+    for row in range (maze_grid_rows):
+        for col in range(maze_grid_cols):
+            chara=maze_lvl[row][col]
+            chara_x= maze_lvl_start_x + cel_size * col
+            chara_y= maze_lvl_start_y - cel_size * row
+            if chara=="X":
+                walls.append((chara_x,chara_y))
+            elif chara==".":
+                pellets.append((chara_x,chara_y))
+            elif chara=="O":
+                powerups.append((chara_x,chara_y))
+    return walls, pellets, powerups
+         
