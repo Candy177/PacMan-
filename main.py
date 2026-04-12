@@ -1,9 +1,10 @@
 """entire game is here"""
 import turtle
+import random
 import pygame
 from cons import scr_hi,scr_wid
 from renderer import Wall, Pellet, Powerup
-
+from actors import Player
 
 def init_screen() -> turtle.Screen:
     screen= turtle.Screen()
@@ -13,8 +14,18 @@ def init_screen() -> turtle.Screen:
     screen.bgcolor("black")
     return screen
 
-def game_loop(screen) -> None:
+def bind_controls(screen , player):
+    screen.listen()
+    screen.onkeypress(player.turn_right , "d")
+    screen.onkeypress(player.turn_left , "a")
+    screen.onkeypress(player.turn_up , "w")
+    screen.onkeypress(player.turn_down , "s")
+
+
+def game_loop(screen , player) -> None:
+    player.move()
     screen.update()
+    screen.ontimer(lambda : game_loop(screen, player), 1000 // 60)
 
 def main() -> None:
     screen=init_screen()
@@ -25,7 +36,16 @@ def main() -> None:
     wall_pen.draw()
     pellet_pen.draw()
     power_pen.draw()
-    game_loop(screen= screen)
+    # Player starting posistion(on random pellet)
+    player_start_coor = random.choice(seq = pellet_pen.pellets)
+    player_start_x =  player_start_coor[0]
+    player_start_y = Unknown = player_start_coor[1]
+    # Create Pac-man
+    player = Player()
+    player.goto(player_start_x , player_start_y)
+    bind_controls(screen , player)
+
+    game_loop(screen= screen , player = player)
     screen.mainloop()
     
 

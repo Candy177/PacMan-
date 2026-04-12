@@ -9,3 +9,5 @@ maze_grid_rows=grid_rows-2
 maze_grid_cols= grid_cols
 maze_lvl_start_x=(-scr_wid/2)+ row_margin + cel_size/2
 maze_lvl_start_y=(scr_hi/2)+ col_margin - (cel_size*5/2)
+player_move_speed = 5
+
