@@ -24,6 +24,7 @@ def bind_controls(screen , player):
 
 def game_loop(screen , player) -> None:
     player.move()
+    player.check_wall_collision()
     screen.update()
     screen.ontimer(lambda : game_loop(screen, player), 1000 // 60)
 
@@ -34,14 +35,16 @@ def main() -> None:
     power_pen=Powerup()
 
     wall_pen.draw()
+    walls = wall_pen.walls
     pellet_pen.draw()
     power_pen.draw()
     # Player starting posistion(on random pellet)
     player_start_coor = random.choice(seq = pellet_pen.pellets)
     player_start_x =  player_start_coor[0]
-    player_start_y = Unknown = player_start_coor[1]
+    player_start_y =  player_start_coor[1]
+  
     # Create Pac-man
-    player = Player()
+    player = Player(walls)
     player.goto(player_start_x , player_start_y)
     bind_controls(screen , player)
 
