@@ -42,7 +42,7 @@ def game_loop(screen, player, ghosts) -> None:
     screen.update()
 
     # Repeat the loop (about 10 FPS)
-    screen.ontimer(lambda: game_loop(screen, player, ghosts), 1000//60)
+    screen.ontimer(lambda: game_loop(screen, player, ghosts), 500 // 5)
 
 
 def main() -> None:
@@ -102,5 +102,8 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    
+    
 
+    
     
