@@ -112,69 +112,31 @@ class Ghost(actor):
     def __init__(self, walls, algorithm="bfs"):
         super().__init__()
         self.showturtle()
-        self.move_speed = 8
         self.shape("circle")
         self.shapesize(1.2)
         self.color("red")
 
-        self.walls = set(walls)
+        self.walls = walls
         self.algorithm = algorithm
 
         self.counter = 0
         self.path = []  # store computed path
 
-    def check_wall_collision(self):
-        round_x = round(self.xcor())
-        round_y = round(self.ycor())
-        heading = self.get_heading()
-        half_cell = round(cel_size / 2)
-
-        for x, y in self.walls:
-            dx = round_x - x
-            dy = round_y - y
-
-            if heading == 0:
-                if -half_cell < dx + half_cell < half_cell and -half_cell <= dy <= half_cell:
-                    self.setx(x - cel_size)
-
-            elif heading == 180:
-                if -half_cell < dx - half_cell < half_cell and -half_cell <= dy <= half_cell:
-                    self.setx(x + cel_size)
-
-            elif heading == 90:
-                if -half_cell <= dx <= half_cell and -half_cell < dy + half_cell < half_cell:
-                    self.sety(y - cel_size)
-
-            elif heading == 270:
-                if -half_cell <= dx <= half_cell and -half_cell < dy - half_cell < half_cell:
-                    self.sety(y + cel_size)
     def to_grid(self, x, y):
-        return (
-        round(x / cel_size) * cel_size,
-        round(y / cel_size) * cel_size
-        )
+        return (round(x), round(y))
 
     def get_neighbors(self, pos):
         x, y = pos
-        step = cel_size
-
-        steps = [(step, 0), (-step, 0), (0, step), (0, -step)]
+        steps = [(30, 0), (-30, 0), (0, 30), (0, -30)]
         neighbors = []
 
         for dx, dy in steps:
             new = (x + dx, y + dy)
-
-            # snap to grid to avoid mismatch
-            new = (
-                round(new[0] / cel_size) * cel_size,
-                round(new[1] / cel_size) * cel_size
-            )
-
-            if new not in self.walls and -500 < new[0] < 500 and -500 < new[1] < 500:
+            if new not in self.walls:
                 neighbors.append(new)
 
         return neighbors
-        
+
     # =========================
     # BFS
     # =========================
@@ -234,8 +196,8 @@ class Ghost(actor):
     def move(self, player_pos):
         self.counter += 1
 
-        # Recalculate path every few frames
-        if self.counter % 10 == 0 or not self.path:
+        # recalculate path every 15 frames (huge performance boost)
+        if self.counter % 15 == 0:
             start = self.to_grid(self.xcor(), self.ycor())
             goal = self.to_grid(player_pos[0], player_pos[1])
 
@@ -244,20 +206,14 @@ class Ghost(actor):
             else:
                 self.path = self.astar(start, goal)
 
-        # Move one tile at a time
-        if self.path and self.counter % 4 == 0:
-            next_step = self.path[0]  # DON'T pop yet
+        # follow saved path step by step
+        if self.path:
+            next_step = self.path.pop(0)
+            self.goto(next_step[0], next_step[1])
 
-            # snap to grid (important safety)
-            next_step = (
-                round(next_step[0] / cel_size) * cel_size,
-                round(next_step[1] / cel_size) * cel_size
-            )
-
-            # only move if it's NOT a wall
-            if next_step not in self.walls:
-                self.goto(next_step)
-                self.path.pop(0)
-            else:
-                # path is invalid → recalculate
-                self.path = []
+        
+       
+           
+            
+                
+           
