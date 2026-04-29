@@ -1,16 +1,14 @@
-"""This actors.py file contains the player and the enemy (ghosts).
-Includes movement, collision, and optimized AI (BFS & A*)."""
+"""Actors: Player + Ghosts with fast movement and optimized AI"""
 
 import turtle
-import math
 from collections import deque
 import heapq
 
-from cons import cel_size, scr_wid, scr_hi, player_move_speed
+from cons import cel_size, scr_wid, scr_hi
 
 
 # =========================
-# Base Actor Class
+# Base Actor
 # =========================
 class actor(turtle.Turtle):
 
@@ -20,72 +18,45 @@ class actor(turtle.Turtle):
         self.penup()
         self.speed(0)
 
-    def get_heading(self) -> int:
+    def get_heading(self):
         return round(self.heading())
 
 
 # =========================
-# Player (Pacman)
+# Player
 # =========================
 class Player(actor):
 
-    def __init__(self, walls) -> None:
+    def __init__(self, walls):
         super().__init__()
         self.showturtle()
         self.shape("circle")
         self.shapesize(1.4)
-        self.pencolor("white")
         self.fillcolor("yellow")
 
         self.state = "stop"
-        self.move_speed = player_move_speed
-        self.lives = 3
-        self.score = 0
+        self.move_speed = 10   # 🔥 faster
         self.walls = walls
 
-    def move(self) -> None:
+    def move(self):
         if self.state != "stop":
             self.forward(self.move_speed)
 
-            # screen wrapping
-            if round(self.ycor()) > scr_hi / 2 - 2 * cel_size:
-                self.sety(scr_hi / 2)
-            elif round(self.ycor()) < -scr_hi / 2:
-                self.sety(scr_hi / 2 - 2 * cel_size)
-            elif round(self.xcor()) < -scr_wid / 2:
-                self.setx(scr_wid / 2)
-            elif round(self.xcor()) > scr_wid / 2:
+            # wrapping
+            if self.xcor() > scr_wid / 2:
                 self.setx(-scr_wid / 2)
+            elif self.xcor() < -scr_wid / 2:
+                self.setx(scr_wid / 2)
+
+            if self.ycor() > scr_hi / 2:
+                self.sety(-scr_hi / 2)
+            elif self.ycor() < -scr_hi / 2:
+                self.sety(scr_hi / 2)
 
     def check_wall_collision(self):
-        round_x = round(self.xcor())
-        round_y = round(self.ycor())
-        heading = self.get_heading()
-        half_cell = round(cel_size / 2)
-
         for x, y in self.walls:
-            dx = round_x - x
-            dy = round_y - y
-
-            if heading == 0:
-                if -half_cell < dx + half_cell < half_cell and -half_cell <= dy <= half_cell:
-                    self.setx(x - cel_size)
-                    self.state = "stop"
-
-            elif heading == 180:
-                if -half_cell < dx - half_cell < half_cell and -half_cell <= dy <= half_cell:
-                    self.setx(x + cel_size)
-                    self.state = "stop"
-
-            elif heading == 90:
-                if -half_cell <= dx <= half_cell and -half_cell < dy + half_cell < half_cell:
-                    self.sety(y - cel_size)
-                    self.state = "stop"
-
-            elif heading == 270:
-                if -half_cell <= dx <= half_cell and -half_cell < dy - half_cell < half_cell:
-                    self.sety(y + cel_size)
-                    self.state = "stop"
+            if self.distance(x, y) < cel_size / 2:
+                self.backward(self.move_speed)
 
     def turn_right(self):
         self.setheading(0)
@@ -105,7 +76,7 @@ class Player(actor):
 
 
 # =========================
-# Ghosts (Optimized AI)
+# Ghosts
 # =========================
 class Ghost(actor):
 
@@ -113,14 +84,13 @@ class Ghost(actor):
         super().__init__()
         self.showturtle()
         self.shape("circle")
-        self.shapesize(1.2)
-        self.color("red")
 
         self.walls = walls
         self.algorithm = algorithm
 
+        self.path = []
         self.counter = 0
-        self.path = []  # store computed path
+        self.move_speed = 6   # 🔥 smooth speed
 
     def to_grid(self, x, y):
         return (round(x), round(y))
@@ -128,21 +98,18 @@ class Ghost(actor):
     def get_neighbors(self, pos):
         x, y = pos
         steps = [(30, 0), (-30, 0), (0, 30), (0, -30)]
-        neighbors = []
+        result = []
 
         for dx, dy in steps:
-            new = (x + dx, y + dy)
-            if new not in self.walls:
-                neighbors.append(new)
+            nxt = (x + dx, y + dy)
+            if nxt not in self.walls:
+                result.append(nxt)
 
-        return neighbors
+        return result
 
-    # =========================
     # BFS
-    # =========================
     def bfs(self, start, goal):
-        queue = deque()
-        queue.append((start, []))
+        queue = deque([(start, [])])
         visited = set()
 
         while queue:
@@ -156,24 +123,21 @@ class Ghost(actor):
 
             visited.add(current)
 
-            for neighbor in self.get_neighbors(current):
-                queue.append((neighbor, path + [neighbor]))
+            for n in self.get_neighbors(current):
+                queue.append((n, path + [n]))
 
         return []
 
-    # =========================
     # A*
-    # =========================
     def heuristic(self, a, b):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
     def astar(self, start, goal):
-        open_list = []
-        heapq.heappush(open_list, (0, start, []))
+        pq = [(0, start, [])]
         visited = set()
 
-        while open_list:
-            cost, current, path = heapq.heappop(open_list)
+        while pq:
+            cost, current, path = heapq.heappop(pq)
 
             if current == goal:
                 return path
@@ -183,21 +147,19 @@ class Ghost(actor):
 
             visited.add(current)
 
-            for neighbor in self.get_neighbors(current):
+            for n in self.get_neighbors(current):
                 new_cost = len(path) + 1
-                priority = new_cost + self.heuristic(neighbor, goal)
-                heapq.heappush(open_list, (priority, neighbor, path + [neighbor]))
+                priority = new_cost + self.heuristic(n, goal)
+                heapq.heappush(pq, (priority, n, path + [n]))
 
         return []
 
-    # =========================
-    # OPTIMIZED MOVE
-    # =========================
+    # 🔥 FAST MOVE
     def move(self, player_pos):
         self.counter += 1
 
-        # recalculate path every 15 frames (huge performance boost)
-        if self.counter % 15 == 0:
+        # recalc path every 10 frames (faster reaction)
+        if self.counter % 10 == 0:
             start = self.to_grid(self.xcor(), self.ycor())
             goal = self.to_grid(player_pos[0], player_pos[1])
 
@@ -206,14 +168,27 @@ class Ghost(actor):
             else:
                 self.path = self.astar(start, goal)
 
-        # follow saved path step by step
+        # smooth movement instead of teleport
         if self.path:
-            next_step = self.path.pop(0)
-            self.goto(next_step[0], next_step[1])
+            target = self.path[0]
+
+            dx = target[0] - self.xcor()
+            dy = target[1] - self.ycor()
+
+            dist = (dx**2 + dy**2) ** 0.5
+
+            if dist < self.move_speed:
+                self.goto(target)
+                self.path.pop(0)
+            else:
+                self.setx(self.xcor() + self.move_speed * dx / dist)
+                self.sety(self.ycor() + self.move_speed * dy / dist)
+
+                
+       
+       
+            
 
         
-       
-           
-            
-                
-           
+
+        
