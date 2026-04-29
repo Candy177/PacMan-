@@ -36,7 +36,7 @@ def game_loop(screen, player, ghosts) -> None:
 
     screen.update()
 
-    # ✅ 60 FPS (very smooth)
+    #  60 FPS (very smooth)
     screen.ontimer(lambda: game_loop(screen, player, ghosts), 1000 // 60)
 
 
