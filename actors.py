@@ -35,7 +35,7 @@ class Player(actor):
         self.fillcolor("yellow")
 
         self.state = "stop"
-        self.move_speed = 10   # 🔥 faster
+        self.move_speed = 10   #  faster
         self.walls = walls
 
     def move(self):
@@ -90,7 +90,7 @@ class Ghost(actor):
 
         self.path = []
         self.counter = 0
-        self.move_speed = 6   # 🔥 smooth speed
+        self.move_speed = 6   #  smooth speed
 
     def to_grid(self, x, y):
         return (round(x), round(y))
